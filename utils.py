@@ -24,7 +24,7 @@ def create_random_neighbour(path, SIZE):
 
 
 def simulated_annealing(matrix, initial_temperature,min_temperature, cooling_rate, max_iterations):
-    s = np.random.randint(0, len(matrix), len(matrix))
+    s = list(range(len(matrix)))
     SIZE = len(s)
     best_s = s
     temperature = initial_temperature
@@ -40,6 +40,9 @@ def simulated_annealing(matrix, initial_temperature,min_temperature, cooling_rat
                 if random.random() < np.exp(-delta/temperature):
                     s = s_prime
         temperature = temperature * cooling_rate
+
+    print("Best solution: ", best_s)
+    print("Cost: ", cost_function(best_s,matrix))
     return best_s
 
 
@@ -65,3 +68,22 @@ def load_tsp(filename: str):
         dist[i, :] = np.array([int(x) for x in line.split()])
 
     return dist
+
+def pretty_print(solution, matrix):
+
+    solution = [k for k, v in solution.items() if v == 1]
+    solution = [(int(x.split('_')[1]),int(x.split('_')[2])) for x in solution]
+    solution_sorted = list(sorted(solution, key=lambda x: x[1]))
+    solution_sorted = [x[0] for x in solution_sorted]
+    print(solution_sorted)
+    print(cost_function(solution_sorted, matrix))
+
+
+def verify_solution(solution, matrix):
+    solution = [k for k, v in solution.items() if v == 1]
+    solution = [(int(x.split('_')[1]),int(x.split('_')[2])) for x in solution]
+    if len(solution) != len(matrix):
+        return False
+    if list(range(len(matrix))) != list(sorted([x[0] for x in solution])):
+        return False
+    return True
