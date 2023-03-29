@@ -14,13 +14,12 @@ def generate_tsp_file(n,max_dist=100, min_dist=10):
 
     max_len = len(str(max_dist))+1
 
+    cities = np.random.randint(0, max_dist, (n, 2))
+
     dist = np.zeros((n, n), dtype=int)
     for i in range(n):
-        for j in range(i, n):
-            if i == j:
-                dist[i, j] = 0
-            else:
-                dist[i, j] = dist[j, i] = np.random.randint(min_dist, max_dist)
+        for j in range(n):
+            dist[i, j] = int(np.sqrt(np.sum((cities[i] - cities[j])**2)))
 
 
 
@@ -45,4 +44,4 @@ def generate_tsp_file(n,max_dist=100, min_dist=10):
         f.close()
 
 
-generate_tsp_file(5)
+generate_tsp_file(10)
