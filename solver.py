@@ -5,7 +5,7 @@ from dimod.binary_quadratic_model import BinaryQuadraticModel
 
 from dwave.system import DWaveSampler, EmbeddingComposite
 from dimod.reference.samplers import ExactSolver
-from utils import load_tsp,simulated_annealing,pretty_print, verify_solution,cost_function
+from utils import load_tsp,simulated_annealing,pretty_print, verify_solution,cost_function,plot_solution
 
 LAMBDA = 200
 NUM_READS = 1000
@@ -13,16 +13,6 @@ NUM_READS = 1000
 
 
 def create_bqm(matrix):
-    """Create a BQM for the TSP problem.
-
-    Args:
-        matrix (numpy.ndarray): The distance matrix.
-
-    Returns:
-        dimod.BinaryQuadraticModel: The BQM.
-
-    """
-
     bqm = BinaryQuadraticModel.empty(dimod.BINARY)
     n = len(matrix)
     for i in range(n):
@@ -51,27 +41,33 @@ def create_bqm(matrix):
 
 
 def solve_tsp(matrix):
-    sampler = EmbeddingComposite(DWaveSampler("Advantage2_prototype1.1"))
+    sampler = EmbeddingComposite(DWaveSampler())
     bqm = create_bqm(matrix)
     sampleset = sampler.sample(bqm, num_reads=NUM_READS)
     return sampleset
 
-def sort_sampleset(matrix,sampleset):
+def print_sampleset(matrix,sampleset,best):
     
-    verified_samples,verified_energies = [],[]
+    verified_samples = []
     for i, sample in enumerate(sampleset):
         if verify_solution(sample, matrix):
-            verified_samples.append(sample)
-            pretty_print(sample,matrix)
+            solution = pretty_print(sample,matrix)
+            verified_samples.append(solution)
 
-    
+    costs = [cost_function(x,matrix) for x in verified_samples]
+    print("Best solution: ", verified_samples[np.argmin(costs)])
+    print("Cost: ", np.min(costs))
+    plot_solution( verified_samples[np.argmin(costs)],matrix)
+
+
 
 def main():
     matrix = load_tsp('data/tsp_10.tsp')
-    simulated_annealing(matrix,100, 0.01, 0.9, 1000)
+    best = simulated_annealing(matrix,100, 0.01, 0.9, 1000)
     sampleset = solve_tsp(matrix)
-    print(sampleset.first.sample)
-    sort_sampleset(matrix,sampleset)
+    print_sampleset(matrix,sampleset,best)
+
+
 
 
 

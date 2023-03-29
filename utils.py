@@ -3,6 +3,9 @@ import random
 from copy import deepcopy
 import matplotlib.pyplot as plt
 import seaborn as sns
+import networkx as nx
+from    sklearn import manifold
+
 
 
 
@@ -77,6 +80,7 @@ def pretty_print(solution, matrix):
     solution_sorted = [x[0] for x in solution_sorted]
     print(solution_sorted)
     print(cost_function(solution_sorted, matrix))
+    return solution_sorted
 
 
 def verify_solution(solution, matrix):
@@ -87,3 +91,26 @@ def verify_solution(solution, matrix):
     if list(range(len(matrix))) != list(sorted([x[0] for x in solution])):
         return False
     return True
+
+def plot_solution(solution, matrix,best=False):
+
+    mds_model = manifold.MDS(n_components=2, random_state=17,
+                             dissimilarity='precomputed',normalized_stress=False)
+    mds_fit = mds_model.fit(matrix)
+    mds_coords = mds_model.fit_transform(matrix)
+    color = 'b'
+    if best:
+        color = 'g'
+
+    plt.figure(figsize=(10, 10))
+    plt.title("Visualisation of the solution")
+    # add the cost
+    plt.suptitle("Cost: {}".format(cost_function(solution, matrix)))
+    plt.scatter(mds_coords[:, 0], mds_coords[:, 1], s=100, c='r')
+    plt.plot(mds_coords[solution, 0], mds_coords[solution, 1], c=color)
+    plt.plot([mds_coords[solution[-1], 0], mds_coords[solution[0], 0]], [mds_coords[solution[-1], 1], mds_coords[solution[0], 1]], c=color)
+    plt.show()
+
+
+
+
