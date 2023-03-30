@@ -3,12 +3,17 @@ import numpy as np
 
 from dimod.binary_quadratic_model import BinaryQuadraticModel
 
-from dwave.system import DWaveSampler, EmbeddingComposite
+from dwave.system import DWaveSampler, AutoEmbeddingComposite
 from dimod.reference.samplers import ExactSolver
+from minorminer import find_embedding
+
+
+
 from utils import load_tsp,simulated_annealing,pretty_print, verify_solution,cost_function,plot_solution
 
-LAMBDA = 200
-NUM_READS = 1000
+LAMBDA = 125
+NUM_READS = 5000
+NUM_CITY = 10
 
 
 
@@ -41,9 +46,11 @@ def create_bqm(matrix):
 
 
 def solve_tsp(matrix):
-    sampler = EmbeddingComposite(DWaveSampler())
+    sampler = AutoEmbeddingComposite(DWaveSampler())
     bqm = create_bqm(matrix)
+
     sampleset = sampler.sample(bqm, num_reads=NUM_READS)
+    print("using qubits: ",
     return sampleset
 
 def print_sampleset(matrix,sampleset,best):
@@ -55,6 +62,9 @@ def print_sampleset(matrix,sampleset,best):
             verified_samples.append(solution)
 
     costs = [cost_function(x,matrix) for x in verified_samples]
+    if len(verified_samples) == 0:
+        print("No solution found")
+        return
     print("Best solution: ", verified_samples[np.argmin(costs)])
     print("Cost: ", np.min(costs))
     plot_solution( verified_samples[np.argmin(costs)],matrix)
@@ -62,16 +72,15 @@ def print_sampleset(matrix,sampleset,best):
 
 
 def main():
-    matrix = load_tsp('data/tsp_10.tsp')
+
+    matrix = load_tsp('data/tsp_'+str(NUM_CITY)+'.tsp')
+    print("Simulated Annealing")
     best = simulated_annealing(matrix,100, 0.01, 0.9, 1000)
+    print("Quantum Annealing")
     sampleset = solve_tsp(matrix)
+    print("used qubits: ", sampleset.info['num_variables'])
     print_sampleset(matrix,sampleset,best)
 
 
 
-
-
-
-
 main()
-
