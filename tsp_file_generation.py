@@ -43,5 +43,4 @@ def generate_tsp_file(n,max_dist=100, min_dist=10):
 
         f.close()
 
-
-generate_tsp_file(10)
+generate_tsp_file(12)
