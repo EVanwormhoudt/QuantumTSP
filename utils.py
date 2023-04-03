@@ -46,7 +46,9 @@ def simulated_annealing(matrix, initial_temperature,min_temperature, cooling_rat
 
     print("Best solution: ", best_s)
     print("Cost: ", cost_function(best_s,matrix))
+    plot_solution(best_s,matrix)
     return best_s
+
 
 
 def load_tsp(filename: str):
@@ -103,9 +105,9 @@ def plot_solution(solution, matrix,best=False):
         color = 'g'
 
     plt.figure(figsize=(10, 10))
-    plt.title("Visualisation of the solution")
+    plt.suptitle("Visualisation of the solution")
     # add the cost
-    plt.suptitle("Cost: {}".format(cost_function(solution, matrix)))
+    plt.title("Cost: {}".format(cost_function(solution, matrix)))
     plt.scatter(mds_coords[:, 0], mds_coords[:, 1], s=100, c='r')
     plt.plot(mds_coords[solution, 0], mds_coords[solution, 1], c=color)
     plt.plot([mds_coords[solution[-1], 0], mds_coords[solution[0], 0]], [mds_coords[solution[-1], 1], mds_coords[solution[0], 1]], c=color)

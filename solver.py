@@ -6,15 +6,15 @@ from dimod.binary_quadratic_model import BinaryQuadraticModel
 from dwave.system import DWaveSampler, AutoEmbeddingComposite
 from dimod.reference.samplers import ExactSolver
 from minorminer import find_embedding
-
+import dwave.inspector
 
 
 from utils import load_tsp,simulated_annealing,pretty_print, verify_solution,cost_function,plot_solution
 
 LAMBDA = 125
-NUM_READS = 5000
+NUM_READS = 1000
 NUM_CITY = 10
-
+TOPOLOGY = "pegasus"
 
 
 def create_bqm(matrix):
@@ -32,25 +32,29 @@ def create_bqm(matrix):
             for q in range(p+1, n):
                 bqm.add_quadratic('x_{}_{}'.format(i, p), 'x_{}_{}'.format(i, q), 2*LAMBDA)
             bqm.add_linear('x_{}_{}'.format(i, p), -LAMBDA)
-            bqm.offset += LAMBDA
+        bqm.offset += LAMBDA
 
     for p in range(n):
         for i in range(n):
             for j in range(i+1, n):
                 bqm.add_quadratic('x_{}_{}'.format(i, p), 'x_{}_{}'.format(j, p), 2*LAMBDA)
             bqm.add_linear('x_{}_{}'.format(i, p), -LAMBDA)
-            bqm.offset += LAMBDA
+        bqm.offset += LAMBDA
 
     return bqm
 
 
 
 def solve_tsp(matrix):
-    sampler = AutoEmbeddingComposite(DWaveSampler())
+    sampler = AutoEmbeddingComposite(DWaveSampler(solver={'topology__type': TOPOLOGY}))
     bqm = create_bqm(matrix)
 
-    sampleset = sampler.sample(bqm, num_reads=NUM_READS)
-    print("using qubits: ",
+    sampleset = sampler.sample(bqm, num_reads=NUM_READS,annealing_time=0.5)
+    embedding = sampleset.info['embedding_context']['embedding']
+
+    print(f"Number of logical variables: {len(embedding.keys())}")
+    print(f"Number of physical qubits used in embedding: {sum(len(chain) for chain in embedding.values())}")
+
     return sampleset
 
 def print_sampleset(matrix,sampleset,best):
@@ -78,7 +82,6 @@ def main():
     best = simulated_annealing(matrix,100, 0.01, 0.9, 1000)
     print("Quantum Annealing")
     sampleset = solve_tsp(matrix)
-    print("used qubits: ", sampleset.info['num_variables'])
     print_sampleset(matrix,sampleset,best)
 
 
