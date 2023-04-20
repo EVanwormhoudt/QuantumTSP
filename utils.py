@@ -85,7 +85,7 @@ def pretty_print(solution, matrix):
     return solution_sorted
 
 
-def verify_solution(solution, matrix):
+def verify_solution_tsp(solution, matrix):
     solution = [k for k, v in solution.items() if v == 1]
     solution = [(int(x.split('_')[1]),int(x.split('_')[2])) for x in solution]
     if len(solution) != len(matrix):
@@ -112,6 +112,39 @@ def plot_solution(solution, matrix,best=False):
     plt.plot(mds_coords[solution, 0], mds_coords[solution, 1], c=color)
     plt.plot([mds_coords[solution[-1], 0], mds_coords[solution[0], 0]], [mds_coords[solution[-1], 1], mds_coords[solution[0], 1]], c=color)
     plt.show()
+
+def load_gtsp(filename: str):
+    """Load a GTSP file and return the distance matrix.
+
+    The file must be in TSPLIB format.
+
+    """
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+    start,n = 0,0
+    for i, line in enumerate(lines):
+        if line.startswith('DIMENSION'):
+            n = int(line.split(':')[-1])
+        if line.startswith('NODE_COORD_SECTION'):
+            start = i + 1
+
+    end = start + n
+
+    coords = np.zeros((n, 2), dtype=int)
+    cluster = {}
+    for i, line in enumerate(lines[start:end]):
+        coords[i, :] = np.array([int(x) for x in line.split()][2:])
+        if cluster.get(int(line.split()[1])):
+            cluster[int(line.split()[1])].append(i)
+        else:
+            cluster[int(line.split()[1])] = [i]
+
+    dist = np.zeros((n, n), dtype=int)
+    for i in range(n):
+        for j in range(n):
+            dist[i,j] = np.sqrt((coords[i,0]-coords[j,0])**2+(coords[i,1]-coords[j,1])**2)
+
+    return dist, cluster, coords
 
 
 
